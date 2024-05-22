@@ -30,9 +30,7 @@ const Model = require('objection').Model
 const visibilityPlugin = require('objection-visibility').default;
 
 class User extends visibilityPlugin(Model) {
-  static get hidden() {
-    return ['hashed_password'];
-  }
+  static hidden = new Set(["hidden_password"])
 }
 
 ```
@@ -67,14 +65,14 @@ Models that dont have the static properties `visible` or `hidden` will remain un
     // post.js
     class Post extends BaseModel {
         static get visible () {
-            return ['description', 'title']
+            return new Set(['description', 'title'])
         }
     }
 
     // user.js
     class User extends BaseModel {
         static get hidden () {
-            return ['hashedPassword']
+            return new Set(['hashedPassword'])
         }
     }
 ```
