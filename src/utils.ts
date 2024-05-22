@@ -1,27 +1,42 @@
+import { Model } from "objection";
+import { omit, pick } from "./utils";
 
-interface IObjectType {
-    [k: string]: {};
+interface IConstructor extends Function {
+  hidden: Set<string>;
+  visible: Set<string>;
 }
 
-function includes(haystack: string[], needle: string) {
-    return haystack.indexOf(needle) !== -1;
-}
+/**
+ * Fix for ts error: "A mixin class must have a constructor with a single rest parameter of type 'any[]'."
+ * adding the constructor with rest parameter doesn't get rid of the error.
+ */
+type Constructor<A = object> = new (...input: any[]) => A;
 
-export function pick(data: IObjectType, toPick: string[]) {
-    return pickBy(data, toPick, (values, v) => includes(values, v));
-}
+export default <M extends Constructor<Model>>(ModelClass: M): M => {
+  return class extends ModelClass {
+    // does not work
+    // constructor(...args: any[]) {
+    //   super();
+    // }
 
-export function omit(data: IObjectType, toOmit: string[]) {
-    return pickBy(data, toOmit, (values, v) => !includes(values, v));
-}
+    public $formatJson(json: {}) {
+      let formattedJson = super.$formatJson(json);
 
-function pickBy(data: IObjectType, values: string[], predicate: (values: string[], v: string) => boolean) {
-    return Object.keys(data)
-    .reduce((c: IObjectType, v) => {
-        if (predicate(values, v)) {
-            c[v] = data[v];
-            return c;
-        }
-        return c;
-    }, {});
-}
+      const conf = this.constructor as IConstructor;
+
+      if (!conf.hidden && !conf.visible) {
+        return formattedJson;
+      }
+
+      if (conf.visible) {
+        formattedJson = pick(formattedJson, conf.visible);
+      }
+
+      if (conf.hidden) {
+        formattedJson = omit(formattedJson, conf.hidden);
+      }
+
+      return formattedJson;
+    }
+  } as M;
+};
