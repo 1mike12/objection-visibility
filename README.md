@@ -2,6 +2,7 @@
 
 # objection-visibility
 
+This fork adds the use of sets instead of inefficient `indexOf` calls on hidden or visible arrays. 
 
 This plugin adds the ability to whitelist or blacklists model properties.
 
