@@ -1,22 +1,19 @@
-"use strict";
-
 import { Model } from "objection";
 import { omit, pick } from "./utils";
 
 interface IConstructor extends Function {
-  hidden: string[];
-  visible: string[];
+  hidden: Set<string>;
+  visible: Set<string>;
 }
 
 /**
  * Fix for ts error: "A mixin class must have a constructor with a single rest parameter of type 'any[]'."
- * adding the constructor with rest parameter doesnt get rid of the error.
+ * adding the constructor with rest parameter doesn't get rid of the error.
  */
-type Constructor<A = object> = new (...input: any[]) => A
+type Constructor<A = object> = new (...input: any[]) => A;
 
-export default <M extends Constructor<Model>>(ModelClass:  M): M => {
+export default <M extends Constructor<Model>>(ModelClass: M): M => {
   return class extends ModelClass {
-
     // does not work
     // constructor(...args: any[]) {
     //   super();
@@ -27,7 +24,9 @@ export default <M extends Constructor<Model>>(ModelClass:  M): M => {
 
       const conf = this.constructor as IConstructor;
 
-      if (!conf.hidden && !conf.visible) { return formattedJson; }
+      if (!conf.hidden && !conf.visible) {
+        return formattedJson;
+      }
 
       if (conf.visible) {
         formattedJson = pick(formattedJson, conf.visible);
